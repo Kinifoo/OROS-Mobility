@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oros Mobility</title>
+  <meta name="theme-color" content="#0F1923">
+  <link rel="manifest" href="/manifest.json">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<!-- ═══ LOGIN ════════════════════════════════════════════════════════ -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-brand-icon"><i class="ti ti-satellite"></i></div>
+      <div>
+        <div class="login-brand-name">OROS</div>
+        <div class="login-brand-sub">Mobility Platform</div>
+      </div>
+    </div>
+    <div class="login-title">Connexion</div>
+    <div class="login-sub">Plateforme de tracking GPS multi-protocoles</div>
+    <div class="form-group">
+      <label>Adresse email</label>
+      <input type="email" id="login-email" class="form-input" placeholder="admin@oros-gps.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="login-error" class="login-error" style="display:none"></div>
+    <button id="login-btn" class="btn-primary full-width large" onclick="App.login()">
+      <i class="ti ti-login"></i> Se connecter
+    </button>
+    <div class="login-version">Oros Mobility v1.0 — GEOTRACK CI</div>
+  </div>
+</div>
+
+<!-- ═══ APPLICATION ═════════════════════════════════════════════════ -->
+<div id="app" class="app" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo-icon"><i class="ti ti-satellite"></i></div>
+      <div>
+        <div class="sb-brand-name">OROS</div>
+        <div class="sb-brand-tag">Mobility</div>
+      </div>
+      <button class="sb-close" onclick="UI.toggleSidebar()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="sb-section">Tableau de bord</div>
+      <a class="nav-item active" data-page="dashboard" onclick="App.navigate('dashboard')">
+        <i class="ti ti-layout-dashboard"></i>Tableau de bord
+      </a>
+
+      <div class="sb-section">Gestion</div>
+      <a class="nav-item" data-page="trackers" onclick="App.navigate('trackers')">
+        <i class="ti ti-device-mobile"></i>Traceurs
+        <span class="nav-badge" id="badge-total">0</span>
+      </a>
+      <a class="nav-item" data-page="vehicles" onclick="App.navigate('vehicles')">
+        <i class="ti ti-car"></i>Véhicules
+      </a>
+      <a class="nav-item" data-page="drivers" onclick="App.navigate('drivers')">
+        <i class="ti ti-users"></i>Conducteurs
+      </a>
+      <a class="nav-item" data-page="driver-score" onclick="App.navigate('driver-score')">
+        <i class="ti ti-trophy"></i>Score conducteur
+      </a>
+      <a class="nav-item" data-page="geofences" onclick="App.navigate('geofences')">
+        <i class="ti ti-map-pin-cog"></i>Zones &amp; Géofences
+      </a>
+      <a class="nav-item" data-page="radars" onclick="App.navigate('radars')">
+        <i class="ti ti-radar"></i>Radars vocaux
+      </a>
+      <a class="nav-item" data-page="ai-alerts" onclick="App.navigate('ai-alerts')">
+        <i class="ti ti-brain"></i>Alertes IA
+        <span class="nav-badge" id="badge-alerts" style="display:none">0</span>
+      </a>
+      <a class="nav-item" data-page="alerts" onclick="App.navigate('alerts')">
+        <i class="ti ti-bell-ringing"></i>Alertes classiques
+      </a>
+
+      <div class="sb-section">Suivi</div>
+      <a class="nav-item" data-page="live" onclick="App.navigate('live')">
+        <i class="ti ti-live-view"></i>Suivi temps réel
+      </a>
+      <a class="nav-item" data-page="history" onclick="App.navigate('history')">
+        <i class="ti ti-history"></i>Historique
+      </a>
+      <a class="nav-item" data-page="analytics" onclick="App.navigate('analytics')">
+        <i class="ti ti-chart-bar"></i>Analytique
+      </a>
+      <a class="nav-item" data-page="route-optimizer" onclick="App.navigate('route-optimizer')">
+        <i class="ti ti-route-square"></i>Itinéraires
+      </a>
+      <a class="nav-item" data-page="trips" onclick="App.navigate('trips')">
+        <i class="ti ti-route"></i>Rapports trajets
+      </a>
+
+      <div class="sb-section">Finances</div>
+      <a class="nav-item" data-page="revenues" onclick="App.navigate('revenues')">
+        <i class="ti ti-currency-dollar"></i>Recettes
+      </a>
+      <a class="nav-item" data-page="immobilization" onclick="App.navigate('immobilization')">
+        <i class="ti ti-engine-off"></i>Immobilisation
+      </a>
+      <a class="nav-item" data-page="auto-immobilization" onclick="App.navigate('auto-immobilization')">
+        <i class="ti ti-robot"></i>Immob. automatique
+        <span class="premium-tag">PRO</span>
+      </a>
+      <a class="nav-item" data-page="auto-immo-live" onclick="App.navigate('auto-immo-live')">
+        <i class="ti ti-currency-dollar"></i>Recettes en attente
+      </a>
+      <a class="nav-item" data-page="maintenance" onclick="App.navigate('maintenance')">
+        <i class="ti ti-tool"></i>Maintenance
+      </a>
+
+      <div class="sb-section">Administration</div>
+      <a class="nav-item" data-page="plans" onclick="App.navigate('plans')">
+        <i class="ti ti-credit-card"></i>Plans &amp; Accès
+      </a>
+      <a class="nav-item" data-page="add-device" onclick="App.navigate('add-device')">
+        <i class="ti ti-circle-plus"></i>Ajouter traceur
+      </a>
+      <a class="nav-item" data-page="users" onclick="App.navigate('users')">
+        <i class="ti ti-shield-lock"></i>Utilisateurs
+      </a>
+      <a class="nav-item" data-page="settings" onclick="App.navigate('settings')">
+        <i class="ti ti-settings-2"></i>Paramètres GPS
+      </a>
+      <a class="nav-item" data-page="logs" onclick="App.navigate('logs')">
+        <i class="ti ti-terminal-2"></i>Journaux système
+      </a>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="user-card" onclick="App.navigate('settings')">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div>
+          <div class="user-name" id="user-name">Admin</div>
+          <div class="user-role" id="user-role">Super Admin</div>
+        </div>
+        <button class="logout-btn" onclick="event.stopPropagation();App.logout()" title="Déconnexion">
+          <i class="ti ti-logout"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="UI.toggleSidebar()"></div>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="menu-btn" onclick="UI.toggleSidebar()"><i class="ti ti-menu-2"></i></button>
+
+      <div class="topbar-search">
+        <i class="ti ti-search"></i>
+        <input type="text" placeholder="Rechercher véhicule, IMEI, client..." id="global-search" oninput="App.globalSearch(this.value)">
+      </div>
+
+      <div class="topbar-spacer"></div>
+
+      <div class="realtime-badge">
+        <div class="rt-dot" id="rt-dot"></div>
+        <span id="rt-label">Mode Temps Réel</span>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="topbar-icon-btn" title="Notifications" onclick="App.navigate('alerts')">
+          <i class="ti ti-bell"></i>
+          <div class="notif-dot" id="notif-dot" style="display:none"></div>
+        </button>
+        <button class="topbar-icon-btn" title="Messages"><i class="ti ti-mail"></i></button>
+        <button class="topbar-icon-btn" title="Rapports" onclick="App.navigate('trips')"><i class="ti ti-file-analytics"></i></button>
+        <span class="topbar-flag">🇨🇮</span>
+
+        <div class="topbar-user">
+          <div class="topbar-user-avatar" id="topbar-avatar">A</div>
+          <div>
+            <div class="topbar-user-name" id="topbar-name">Super Admin</div>
+            <div class="topbar-user-email" id="topbar-email">admin@orosmobility.com</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGES -->
+    <div class="pages-container">
+
+      <!-- ── DASHBOARD ─────────────────────────────────────── -->
+      <div id="page-dashboard" class="page active">
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi-card" onclick="App.navigate('trackers')">
+            <div class="kpi-card-top">
+              <div class="kpi-label">Véhicules totaux</div>
+              <div class="kpi-icon blue"><i class="ti ti-car"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-total">—</div>
+            <div class="kpi-sub"><span class="pos" id="kpi-total-sub">—</span> actifs</div>
+          </div>
+          <div class="kpi-card" onclick="App.navigate('live')">
+            <div class="kpi-card-top">
+              <div class="kpi-label">En ligne</div>
+              <div class="kpi-icon green"><i class="ti ti-wifi"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-online">—</div>
+            <div class="kpi-sub">GPS connectés</div>
+          </div>
+          <div class="kpi-card" onclick="App.navigate('trackers')">
+            <div class="kpi-card-top">
+              <div class="kpi-label">Hors ligne</div>
+              <div class="kpi-icon red"><i class="ti ti-wifi-off"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-offline">—</div>
+            <div class="kpi-sub">Dernière 24h</div>
+          </div>
+          <div class="kpi-card" onclick="App.navigate('alerts')">
+            <div class="kpi-card-top">
+              <div class="kpi-label">Alertes actives</div>
+              <div class="kpi-icon amber"><i class="ti ti-alert-triangle"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-alerts-val">—</div>
+            <div class="kpi-sub">À traiter</div>
+          </div>
+          <div class="kpi-card" onclick="App.navigate('trips')">
+            <div class="kpi-card-top">
+              <div class="kpi-label">Distance aujourd'hui</div>
+              <div class="kpi-icon purple"><i class="ti ti-road"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-distance">—</div>
+            <div class="kpi-sub">Tous véhicules</div>
+          </div>
+        </div>
+
+        <!-- Grille carte + activité + alertes -->
+        <div class="dashboard-grid">
+
+          <!-- Carte -->
+          <div class="map-card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-map-2"></i>Carte en temps réel</div>
+              <div class="card-actions">
+                <button class="card-action-btn active" id="btn-osm" onclick="Pages.dashboard.setLayer('osm',this)">
+                  <i class="ti ti-map"></i> Plan
+                </button>
+                <button class="card-action-btn" id="btn-sat" onclick="Pages.dashboard.setLayer('satellite',this)">
+                  <i class="ti ti-planet"></i> Satellite
+                </button>
+                <button class="card-action-btn" onclick="MapManager.fitAll()">
+                  <i class="ti ti-focus"></i> Centrer
+                </button>
+              </div>
+            </div>
+            <div id="map" style="flex:1;min-height:0;position:relative;">
+              <!-- Panneau traceur sélectionné -->
+              <div class="device-panel" id="device-panel" style="display:none">
+                <div class="dp-header">
+                  <div class="dp-icon"><i class="ti ti-car"></i></div>
+                  <div style="flex:1;min-width:0">
+                    <div class="dp-name" id="dp-name">—</div>
+                    <div class="dp-imei mono" id="dp-imei">—</div>
+                  </div>
+                  <button class="dp-close" onclick="Pages.dashboard.closePanel()"><i class="ti ti-x"></i></button>
+                </div>
+                <div class="dp-stats">
+                  <div class="dp-stat"><div class="dp-val" id="dp-speed">0</div><div class="dp-label">km/h</div></div>
+                  <div class="dp-stat"><div class="dp-val" id="dp-heading">—</div><div class="dp-label">Cap</div></div>
+                  <div class="dp-stat"><div class="dp-val" id="dp-sats">—</div><div class="dp-label">Sats</div></div>
+                </div>
+                <div class="dp-rows">
+                  <div class="dp-row"><span>Protocole</span><span class="badge-proto" id="dp-proto">—</span></div>
+                  <div class="dp-row"><span>Véhicule</span><span id="dp-vehicle">—</span></div>
+                  <div class="dp-row"><span>Conducteur</span><span id="dp-driver">—</span></div>
+                  <div class="dp-row"><span>Dernière trame</span><span id="dp-lastseen" class="mono" style="font-size:11px">—</span></div>
+                </div>
+                <div class="dp-actions">
+                  <button class="dp-immobilize" id="dp-immo-btn" onclick="Pages.dashboard.confirmImmobilize()">
+                    <i class="ti ti-engine-off"></i> Immobiliser
+                  </button>
+                  <div style="display:flex;gap:7px;width:100%">
+                    <button class="btn-sm" style="flex:1;justify-content:center" onclick="Pages.dashboard.showHistory()">
+                      <i class="ti ti-history"></i> Historique
+                    </button>
+                    <button class="btn-sm" style="flex:1;justify-content:center" onclick="App.navigate('live')">
+                      <i class="ti ti-live-view"></i> Suivi
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <!-- Contrôles -->
+              <div class="map-controls">
+                <button onclick="MapManager.fitAll()" title="Voir tous"><i class="ti ti-focus"></i></button>
+                <button id="follow-btn" onclick="Pages.dashboard.toggleFollow()" title="Suivi auto"><i class="ti ti-live-view"></i></button>
+              </div>
+            </div>
+            <div class="map-legend">
+              <div class="legend-item"><div class="legend-dot online"></div>En ligne</div>
+              <div class="legend-dot offline"></div><div style="font-size:11px;font-weight:500;color:var(--text2);margin-right:14px">Hors ligne</div>
+              <div class="legend-item"><div class="legend-dot moving"></div>En mouvement</div>
+              <div class="legend-item"><div class="legend-dot stopped"></div>À l'arrêt</div>
+            </div>
+          </div>
+
+          <!-- Activité récente -->
+          <div class="activity-card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-activity"></i>Activité récente</div>
+            </div>
+            <div class="activity-list" id="activity-list">
+              <div class="loading-state"><i class="ti ti-loader"></i></div>
+            </div>
+            <div class="card-footer"><a onclick="App.navigate('trackers')">Voir toute l'activité</a></div>
+          </div>
+
+          <!-- Alertes actives -->
+          <div class="alerts-card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-bell-ringing"></i>Alertes actives</div>
+            </div>
+            <div class="alerts-list-inner" id="dash-alerts-list">
+              <div class="loading-state"><i class="ti ti-loader"></i></div>
+            </div>
+            <div class="card-footer"><a onclick="App.navigate('alerts')">Voir toutes les alertes</a></div>
+          </div>
+        </div>
+
+        <!-- Ligne du bas -->
+        <div class="dashboard-bottom">
+          <!-- Donut protocoles -->
+          <div class="bottom-card">
+            <div class="bottom-card-title">Statut des véhicules par protocole</div>
+            <div class="donut-wrap">
+              <svg class="donut-svg" width="90" height="90" viewBox="0 0 90 90">
+                <circle cx="45" cy="45" r="35" fill="none" stroke="var(--border)" stroke-width="14"/>
+                <circle id="donut-gt06"     cx="45" cy="45" r="35" fill="none" stroke="#1E6FD9" stroke-width="14" stroke-dasharray="0 220" stroke-dashoffset="55" transform="rotate(-90 45 45)" style="transition:stroke-dasharray 0.8s"/>
+                <circle id="donut-teltonika" cx="45" cy="45" r="35" fill="none" stroke="#7C3AED" stroke-width="14" stroke-dasharray="0 220" stroke-dashoffset="55" transform="rotate(-90 45 45)" style="transition:stroke-dasharray 0.8s"/>
+                <circle id="donut-h02"      cx="45" cy="45" r="35" fill="none" stroke="#16A34A" stroke-width="14" stroke-dasharray="0 220" stroke-dashoffset="55" transform="rotate(-90 45 45)" style="transition:stroke-dasharray 0.8s"/>
+                <circle id="donut-tk103"    cx="45" cy="45" r="35" fill="none" stroke="#D97706" stroke-width="14" stroke-dasharray="0 220" stroke-dashoffset="55" transform="rotate(-90 45 45)" style="transition:stroke-dasharray 0.8s"/>
+              </svg>
+              <div class="donut-legend" id="donut-legend">
+                <div class="donut-item"><div class="donut-dot" style="background:#1E6FD9"></div><span class="donut-name">GT06</span><span class="donut-val" id="dl-gt06">—</span></div>
+                <div class="donut-item"><div class="donut-dot" style="background:#7C3AED"></div><span class="donut-name">Teltonika</span><span class="donut-val" id="dl-teltonika">—</span></div>
+                <div class="donut-item"><div class="donut-dot" style="background:#16A34A"></div><span class="donut-name">Seeworld</span><span class="donut-val" id="dl-h02">—</span></div>
+                <div class="donut-item"><div class="donut-dot" style="background:#D97706"></div><span class="donut-name">iStarTek</span><span class="donut-val" id="dl-tk103">—</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top 5 distance -->
+          <div class="bottom-card">
+            <div class="bottom-card-title">Top 5 véhicules — Distance aujourd'hui</div>
+            <div id="top5-list">
+              <div class="loading-state" style="padding:20px"><i class="ti ti-loader"></i></div>
+            </div>
+          </div>
+
+          <!-- Ressources serveur -->
+          <div class="bottom-card">
+            <div class="bottom-card-title">Utilisation des ressources</div>
+            <div id="resources-panel">
+              <div class="res-row"><div class="res-head"><span class="res-label">CPU</span><span class="res-val" id="res-cpu">—</span></div><div class="res-bar-bg"><div class="res-bar blue" id="bar-cpu" style="width:0%"></div></div></div>
+              <div class="res-row"><div class="res-head"><span class="res-label">Mémoire</span><span class="res-val" id="res-mem">—</span></div><div class="res-bar-bg"><div class="res-bar purple" id="bar-mem" style="width:0%"></div></div></div>
+              <div class="res-row"><div class="res-head"><span class="res-label">Stockage</span><span class="res-val" id="res-disk">—</span></div><div class="res-bar-bg"><div class="res-bar green" id="bar-disk" style="width:0%"></div></div></div>
+              <div class="res-row"><div class="res-head"><span class="res-label">Base de données</span><span class="res-val" id="res-db">—</span></div><div class="res-bar-bg"><div class="res-bar amber" id="bar-db" style="width:0%"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TRACEURS ───────────────────────────────────────── -->
+      <div id="page-trackers" class="page">
+        <div class="page-header">
+          <div><div class="page-title-h">Traceurs GPS</div><div class="page-subtitle">Gestion et surveillance de tous vos traceurs</div></div>
+          <div class="page-actions"><button class="btn-primary" onclick="App.navigate('add-device')"><i class="ti ti-plus"></i> Ajouter</button></div>
+        </div>
+        <div class="page-toolbar">
+          <input type="text" class="search-input" placeholder="Rechercher IMEI, nom, protocole..." oninput="Pages.trackers.filter(this.value)">
+          <div class="filter-chips" id="tracker-filters">
+            <button class="chip active" onclick="Pages.trackers.filterStatus(null,this)">Tous</button>
+            <button class="chip" onclick="Pages.trackers.filterStatus('online',this)">En ligne</button>
+            <button class="chip" onclick="Pages.trackers.filterStatus('offline',this)">Hors ligne</button>
+            <button class="chip" onclick="Pages.trackers.filterStatus('alarm',this)">Alarme</button>
+          </div>
+        </div>
+        <div class="card-list" id="trackers-list">
+          <div class="loading-state"><i class="ti ti-loader"></i></div>
+        </div>
+      </div>
+
+      <!-- ── LIVE ──────────────────────────────────────────── -->
+      <div id="page-live" class="page">
+        <div class="page-header" style="padding-bottom:14px">
+          <div><div class="page-title-h">Suivi temps réel</div><div class="page-subtitle">Carte plein écran</div></div>
+          <div class="page-actions">
+            <button class="btn-secondary" onclick="MapManager.fitAll()"><i class="ti ti-focus"></i> Centrer</button>
+            <button class="btn-secondary" onclick="MapManager.toggleLayer()"><i class="ti ti-layers-difference"></i> Fond</button>
+          </div>
+        </div>
+        <div style="flex:1;padding:0 24px 24px;min-height:0">
+          <div style="height:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
+            <div id="live-map" style="width:100%;height:100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── HISTORIQUE ─────────────────────────────────────── -->
+      <div id="page-history" class="page">
+        <div class="page-header" style="padding-bottom:14px">
+          <div><div class="page-title-h">Historique</div><div class="page-subtitle">Replay de trajets avec timeline</div></div>
+        </div>
+        <div class="page-toolbar">
+          <select class="form-select" id="hist-device" onchange="Pages.history.load()" style="width:220px">
+            <option value="">Sélectionner un traceur...</option>
+          </select>
+          <input type="date" class="form-input" id="hist-from" style="width:150px" onchange="Pages.history.load()">
+          <input type="date" class="form-input" id="hist-to"   style="width:150px" onchange="Pages.history.load()">
+          <button class="btn-primary" onclick="Pages.history.load()"><i class="ti ti-search"></i> Charger</button>
+        </div>
+        <div class="history-layout">
+          <div class="history-map-wrap"><div id="history-map"></div></div>
+          <div class="history-sidebar">
+            <div class="replay-controls" id="replay-controls" style="display:none">
+              <div class="replay-info">
+                <span id="replay-time" class="mono">—</span>
+                <span id="replay-speed-val">0 km/h</span>
+              </div>
+              <input type="range" id="replay-slider" min="0" max="100" value="0" class="replay-range" oninput="Pages.history.seekTo(this.value)">
+              <div class="replay-btns">
+                <button onclick="Pages.history.replayBack()"><i class="ti ti-player-skip-back"></i></button>
+                <button id="replay-play-btn" onclick="Pages.history.togglePlay()"><i class="ti ti-player-play"></i></button>
+                <button onclick="Pages.history.replayForward()"><i class="ti ti-player-skip-forward"></i></button>
+                <select id="replay-speed" onchange="Pages.history.setSpeed(this.value)">
+                  <option value="1">1×</option><option value="5">5×</option>
+                  <option value="10" selected>10×</option><option value="50">50×</option>
+                </select>
+              </div>
+            </div>
+            <div id="history-positions-list" class="positions-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ALERTES ─────────────────────────────────────────── -->
+      <div id="page-alerts" class="page">
+        <div class="page-header">
+          <div><div class="page-title-h">Alertes</div><div class="page-subtitle">Centre de notifications et événements</div></div>
+          <div class="page-actions"><button class="btn-secondary" onclick="Pages.alerts.ackAll()"><i class="ti ti-check"></i> Tout acquitter</button></div>
+        </div>
+        <div class="page-toolbar">
+          <div class="filter-chips">
+            <button class="chip active" onclick="Pages.alerts.filter(null,this)">Toutes</button>
+            <button class="chip" onclick="Pages.alerts.filter('critical',this)">Critiques</button>
+            <button class="chip" onclick="Pages.alerts.filter('warning',this)">Avertissements</button>
+          </div>
+        </div>
+        <div class="card-list" id="alerts-list">
+          <div class="loading-state"><i class="ti ti-loader"></i></div>
+        </div>
+      </div>
+
+      <!-- ── GÉOFENCES ──────────────────────────────────────── -->
+      <div id="page-geofences" class="page">
+        <div class="page-header">
+          <div><div class="page-title-h">Zones &amp; Géofences</div><div class="page-subtitle">Définir des zones virtuelles et alertes</div></div>
+          <div class="page-actions">
+            <button class="btn-secondary" onclick="Pages.geofences.startDraw('circle')"><i class="ti ti-circle"></i> Zone circulaire</button>
+            <button class="btn-primary" onclick="Pages.geofences.startDraw('polygon')"><i class="ti ti-pentagon"></i> Polygone</button>
+          </div>
+        </div>
+        <div style="flex:1;padding:0 24px 24px;min-height:0;display:flex;gap:16px">
+          <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
+            <div id="geofences-map" style="width:100%;height:100%"></div>
+          </div>
+          <div style="width:280px;display:flex;flex-direction:column;gap:10px;overflow-y:auto" id="geofences-list"></div>
+        </div>
+      </div>
+
+      <!-- ── VÉHICULES ──────────────────────────────────────── -->
+      <div id="page-vehicles" class="page">
+        <div class="page-header">
+          <div><div class="page-title-h">Véhicules</div><div class="page-subtitle">Gestion de la flotte</div></div>
+          <div class="page-actions"><button class="btn-primary" onclick="Modals.addVehicle()"><i class="ti ti-plus"></i> Ajouter</button></div>
+        </div>
+        <div class="page-toolbar">
+          <input type="text" class="search-input" placeholder="Rechercher véhicule, plaque..." oninput="Pages.vehicles.filter(this.value)">
+        </div>
+        <div class="card-list" id="vehicles-list"><div class="loading-state"><i class="ti ti-loader"></i></div></div>
+      </div>
+
+      <!-- ── CONDUCTEURS ────────────────────────────────────── -->
+      <div id="page-drivers" class="page">
+        <div class="page-header">
+          <div><div class="page-title-h">Conducteurs</div><div class="page-subtitle">Gestion des conducteurs et affectations</div></div>
+          <div class="page-actions"><button class="btn-primary" onclick="Modals.addDriver()"><i class="ti ti-plus"></i> Ajouter</button></div>
+        </div>
+        <div class="page-toolbar">
+          <input type="text" class="search-input" placeholder="Rechercher conducteur..." oninput="Pages.drivers.filter(this.value)">
+        </div>
+        <div class="card-list" id="drivers-list"><div class="loading-state"><i class="ti ti-loader"></i></div></div>
+      </div>
+
+      <!-- ── TRAJETS ────────────────────────────────────────── -->
+      <div id="page-trips" class="page">
+        <div class="page-header" style="padding-bottom:14px">
+          <div><div class="page-title-h">Rapports de trajets</div><div class="page-subtitle">Analyse des déplacements</div></div>
+        </div>
+        <div class="page-toolbar">
+          <select class="form-select" id="trips-device" style="width:200px"><option value="">Tous les traceurs</option></select>
+          <input type="date" class="form-input" id="trips-from" style="width:150px">
+          <input type="date" class="form-input" id="trips-to"   style="width:150px">
+          <button class="btn-primary" onclick="Pages.trips.load()"><i class="ti ti-search"></i></button>
+        </div>
+        <div class="trips-summary" id="trips-summary"></div>
+        <div class="card-list" id="trips-list"><div class="loading-state"><i class="ti ti-loader"></i></div></div>
+      </div>
+
+      <!-- ── RECETTES ───────────────────────────────────────── -->
+      <div id="page-revenues" class="page">
+        <div class="page-header" style="padding-bottom:14px">
+          <div><div class="page-title-h">Recettes</div><div class="page-subtitle">Gestion des revenus — FCFA</div></div>
+          <div class="page-actions">
+            <button class="btn-success" onclick="Modals.addRevenue()"><i class="ti ti-plus"></i> Saisir recette</button>
+          </div>
+        </div>
+        <div class="revenue-kpis" id="revenue-kpis"></div>
+        <div class="page-toolbar">
+          <select class="form-select" id="rev-vehicle" style="width:200px"><option value="">Tous les véhicules</option></select>
+          <input type="date" class="form-input" id="rev-from" style="width:150px">
+          <input type="date" class="form-input" id="rev-to"   style="width:150px">
+          <button class="btn-primary" onclick="Pages.revenues.load()"><i class="ti ti-search"></i> Filtrer</button>
+        </div>
+        <div class="card-list" id="revenues-list"><div class="loading-state"><i class="ti ti-loader"></i></div></div>
+      </div>
+
+      <!-- ── IMMOBILISATION AUTOMATIQUE (PREMIUM) ───────────── -->
+      <div id="page-auto-immobilization" class="page">
+        <div class="page-header" style="padding-bottom:14px">
+          <div>
+            <div class="page-title-h" style="display:flex;align-items:center;gap:10px">
+              Immobilisation automatique
+              <span style="font-size:12px;font-weight:800;background:linear-gradient(135deg,#F59E0B,#EF4444);color:#fff;padding:3px 12px;border-radius:99px;letter-spacing:0.05em">PLAN PRO</span>
+            </div>
+            <div class="page-subtitle">Blocage automatique si la recette n'est pas versée</div>
+          </div>
+        </div>
+
+        <!-- Banner Premium -->
+        <div class="premium-banner">
+          <div class="prem-icon">🔒</div>
+          <div class="prem-body">
+            <div class="prem-title">Fonctionnalité disponible dans le Plan PRO</div>
+            <div class="prem-sub">L'immobilisation automatique est un outil puissant de gestion financière de flotte. Activez le Plan PRO pour accéder à cette fonctionnalité et à bien d'autres (rapports avancés, alertes SMS, API ouverte).</div>
+          </div>
+          <button class="prem-btn">Passer au Plan PRO →</button>
+        </div>
+
+        <!-- Schéma du flux -->
+        <div class="immo-flow" style="margin-top:16px">
+          <div class="immo-flow-title"><i class="ti ti-sitemap"></i> Comment fonctionne l'immobilisation automatique</div>
+          <div class="immo-steps">
+            <div class="immo-step t1">
+              <div class="immo-step-icon"><i class="ti ti-clock-hour-8"></i></div>
+              <div class="immo-step-time">07h45</div>
+              <div class="immo-step-label">Notification gestionnaire</div>
+              <div class="immo-step-sub">SMS + App : "Recette J-1 reçue ?"</div>
+            </div>
+            <div class="immo-step t2">
+              <div class="immo-step-icon"><i class="ti ti-check"></i></div>
+              <div class="immo-step-time">Réponse OUI</div>
+              <div class="immo-step-label">Véhicule autorisé</div>
+              <div class="immo-step-sub">Continue normalement</div>
+            </div>
+            <div class="immo-step t3">
+              <div class="immo-step-icon"><i class="ti ti-x"></i></div>
+              <div class="immo-step-time">Réponse NON</div>
+              <div class="immo-step-label">Avertissement conducteur</div>
+              <div class="immo-step-sub">SMS + rappels toutes 30min</div>
+            </div>
+            <div class="immo-step t4">
+              <div class="immo-step-icon"><i class="ti ti-clock"></i></div>
+              <div class="immo-step-time">Rappels</div>
+              <div class="immo-step-label">Décompte toutes 30min</div>
+              <div class="immo-step-sub">Jusqu'à 10h00</div>
+            </div>
+            <div class="immo-step t5">
+              <div class="immo-step-icon"><i class="ti ti-engine-off"></i></div>
+              <div class="immo-step-time">10h00</div>
+              <div class="immo-step-label">Immobilisation auto</div>
+              <div class="immo-step-sub">ENGINE CUT envoyé</div>
+            </div>
+            <div class="immo-step t6">
+              <div class="immo-step-icon"><i class="ti ti-key"></i></div>
+              <div class="immo-step-time">Prorogation</div>
+              <div class="immo-step-label">Débloqué par gestionnaire</div>
+              <div class="immo-step-sub">Via app, délai accordé</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cards des fonctionnalités -->
+        <div class="immo-cards">
+          <div class="immo-card">
+            <div class="immo-card-icon">⏰</div>
+            <div class="immo-card-title">Notification matinale 07h45</div>
+            <div class="immo-card-desc">Le gestionnaire reçoit chaque matin un SMS + notification app pour valider la recette de la veille avant le départ du chauffeur.</div>
+          </div>
+          <div class="immo-card">
+            <div class="immo-card-icon">📲</div>
+            <div class="immo-card-title">Avertissement conducteur</div>
+            <div class="immo-card-desc">Si non validé, le conducteur reçoit un SMS d'avertissement + rappels automatiques toutes les 30 minutes avec compte à rebours.</div>
+          </div>
+          <div class="immo-card">
+            <div class="immo-card-icon">🚫</div>
+            <div class="immo-card-title">Immobilisation à 10h00</div>
+            <div class="immo-card-desc">À 10h précises, si toujours impayé, la commande ENGINE CUT est envoyée au traceur GPS. Le véhicule ne peut plus redémarrer.</div>
+          </div>
+          <div class="immo-card">
+            <div class="immo-card-icon">✅</div>
+            <div class="immo-card-title">Réactivation par versement</div>
+            <div class="immo-card-desc">Dès que le conducteur verse la recette (Mobile Money, espèces), le gestionnaire valide et le véhicule est réactivé immédiatement.</div>
+          </div>
+          <div class="immo-card">
+            <div class="immo-card-icon">⏳</div>
+            <div class="immo-card-title">Prorogation de délai</div>
+            <div class="immo-card-desc">Le gestionnaire peut accorder une prorogation depuis l'application. Le véhicule continue de circuler jusqu'au délai accordé.</div>
+          </div>
+          <div class="immo-card premium">
+            <div class="immo-card-icon">🔒</div>
+            <div class="immo-card-title">Disponible en Plan PRO</div>
+            <div class="immo-card-desc">Passez au Plan PRO pour activer cette fonctionnalité et protéger vos revenus de manière automatique et sans effort.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MAINTENANCE ─────────────────────────────────────── -->
+      <div id="page-maintenance" class="page">
+        <div class="page-header">
+          <div><div class="page-title-h">Maintenance</div><div class="page-subtitle">Suivi des entretiens et rappels</div></div>
+          <div class="page-actions"><button class="btn-primary" onclick="Modals.addMaintenance()"><i class="ti ti-plus"></i> Ajouter</button></div>
+        </div>
+        <div class="card-list" id="maintenance-list"><div class="loading-state"><i class="ti ti-loader"></i></div></div>
+      </div>
+
+      <!-- ── AJOUTER TRACEUR ─────────────────────────────────── -->
+      <div id="page-add-device" class="page">
+        <div class="page-header"><div><div class="page-title-h">Ajouter un traceur</div><div class="page-subtitle">Enregistrer un nouveau traceur GPS</div></div></div>
+        <div class="form-page">
+          <div class="form-card">
+            <h3><i class="ti ti-device-mobile"></i> Informations du traceur</h3>
+            <div class="form-grid">
+              <div class="form-group"><label>Nom du traceur *</label><input type="text" id="dev-name" class="form-input" placeholder="ex: Toyota OM-001"></div>
+              <div class="form-group"><label>IMEI (15 chiffres) *</label><input type="text" id="dev-imei" class="form-input mono" placeholder="358899012345678" maxlength="15"></div>
+              <div class="form-group full"><label>Protocole GPS *</label>
+                <select id="dev-protocol" class="form-select">
+                  <option value="GT06">GT06 — Sinotrack / Micodus / Istartek (port 8090)</option>
+                  <option value="Teltonika">Teltonika CODEC8/8E — FMB/FMC (port 5027)</option>
+                  <option value="H02">H02 — Seeworld S20/S21/G100 (port 5013)</option>
+                  <option value="Seeworld">Seeworld (port 8000)</option>
+                  <option value="TK103">TK103 — Coban TK103A/B (port 5002)</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Modèle</label><input type="text" id="dev-model" class="form-input" placeholder="ST-906, FMB920..."></div>
+              <div class="form-group"><label>Numéro SIM</label><input type="text" id="dev-phone" class="form-input mono" placeholder="+225 07 00 00 00 00"></div>
+              <div class="form-group"><label>Vitesse max (km/h)</label><input type="number" id="dev-speed" class="form-input mono" value="100" min="30" max="200"></div>
+            </div>
+            <div class="form-hint"><i class="ti ti-info-circle"></i> Configurer le traceur avec l'IP de ce serveur et le port correspondant à son protocole.</div>
+          </div>
+          <div id="add-device-error" class="form-error" style="display:none"></div>
+          <div class="form-actions">
+            <button class="btn-primary" onclick="Pages.addDevice.save()"><i class="ti ti-device-floppy"></i> Enregistrer</button>
+            <button class="btn-secondary" onclick="App.navigate('trackers')">Annuler</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── UTILISATEURS ───────────────────────────────────── -->
+      <div id="page-users" class="page">
+        <div class="page-header">
+          <div><div class="page-title-h">Utilisateurs</div><div class="page-subtitle">Gestion des accès et permissions</div></div>
+          <div class="page-actions"><button class="btn-primary" onclick="Modals.addUser()"><i class="ti ti-user-plus"></i> Ajouter</button></div>
+        </div>
+        <div class="card-list" id="users-list"><div class="loading-state"><i class="ti ti-loader"></i></div></div>
+      </div>
+
+      <!-- ── PARAMÈTRES ─────────────────────────────────────── -->
+      <div id="page-settings" class="page">
+        <div class="page-header"><div><div class="page-title-h">Paramètres GPS</div><div class="page-subtitle">Configuration des ports et protocoles</div></div></div>
+        <div class="form-page">
+          <div class="form-card">
+            <h3><i class="ti ti-server"></i> Ports TCP actifs</h3>
+            <div class="settings-rows">
+              <div class="setting-row"><div><div class="sr-label">Sinotrack GT06</div><div class="sr-sub">Sinotrack, Micodus, Istartek</div></div><span class="badge-port mono">:8090</span></div>
+              <div class="setting-row"><div><div class="sr-label">Teltonika</div><div class="sr-sub">FMB920, FMB140, FMC130</div></div><span class="badge-port mono">:5027</span></div>
+              <div class="setting-row"><div><div class="sr-label">H02</div><div class="sr-sub">Seeworld S20/S21/G100</div></div><span class="badge-port mono">:5013</span></div>
+              <div class="setting-row"><div><div class="sr-label">Seeworld alt.</div><div class="sr-sub">Port alternatif Seeworld</div></div><span class="badge-port mono">:8000</span></div>
+              <div class="setting-row"><div><div class="sr-label">TK103</div><div class="sr-sub">Coban TK103A/B/TK104</div></div><span class="badge-port mono">:5002</span></div>
+            </div>
+          </div>
+          <div class="form-card">
+            <h3><i class="ti ti-user"></i> Mon profil</h3>
+            <div class="form-grid">
+              <div class="form-group"><label>Nom</label><input type="text" id="profile-name" class="form-input"></div>
+              <div class="form-group"><label>Email</label><input type="email" id="profile-email" class="form-input"></div>
+              <div class="form-group full"><label>Nouveau mot de passe</label><input type="password" id="profile-pass" class="form-input" placeholder="Laisser vide pour ne pas changer"></div>
+            </div>
+            <button class="btn-primary" style="margin-top:14px" onclick="Pages.settings.saveProfile()"><i class="ti ti-device-floppy"></i> Sauvegarder</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── JOURNAUX ───────────────────────────────────────── -->
+      <div id="page-logs" class="page">
+        <div class="page-header"><div><div class="page-title-h">Journaux système</div><div class="page-subtitle">Flux de trames TCP en temps réel</div></div></div>
+        <div style="flex:1;padding:0 24px 24px;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+          <div style="background:var(--sb-bg);border-radius:var(--radius);padding:14px 18px;flex:1;overflow-y:auto;font-family:var(--mono);font-size:12px">
+            <div style="color:#3D5A78;margin-bottom:8px">// Flux de trames GPS en temps réel</div>
+            <div id="logs-list" style="display:flex;flex-direction:column;gap:4px"></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px">
+            <div class="rt-dot"></div>
+            <span style="font-size:12px;color:var(--text3)">Flux actif — </span>
+            <span id="log-count" style="font-size:12px;font-weight:600;color:var(--text2);font-family:var(--mono)">0 trames reçues</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pages-container -->
+  </main>
+</div><!-- /app -->
+
+<!-- ═══ MODAL ══════════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="Modals.close()">
+  <div id="modal-box" class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modal-title">Modal</h3>
+      <button onclick="Modals.close()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modal-body"></div>
+    <div id="modal-footer" class="modal-footer"></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/voice-alerts.js"></script>
+<script src="/js/map.js"></script>
+<script src="/js/pages.js"></script>
+<script src="/js/app.js"></script>
+<style>
+.leaflet-tooltip {
+  background: var(--sb-bg) !important; border: none !important; color: #fff !important;
+  font-family: 'Figtree',sans-serif !important; font-size: 12px !important; font-weight: 600 !important;
+  border-radius: 6px !important; padding: 4px 10px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+}
+.leaflet-tooltip::before { display:none; }
+@keyframes radarToastIn {
+  from { opacity:0; transform:translateX(-50%) translateY(-20px) scale(0.9); }
+  to   { opacity:1; transform:translateX(-50%) translateY(0)     scale(1); }
+}
+</style>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
